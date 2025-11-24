@@ -1,30 +1,52 @@
 from flask import Flask, request, jsonify
 import smtplib
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 
-EMAIL = "balammuu0023@gmail.com"
-APP_PASSWORD = "your_16_digit_app_password"  # replace with Gmail app password
+MAIL_USERNAME = "balammuu0023@gmail.com"   # your Gmail
+MAIL_PASSWORD = "knko rtwx oank wozv"        # replace with real app password
 
-@app.post("/send-otp")
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587  # TLS
+
+
+def send_email(to_email, otp):
+    try:
+        msg = MIMEText(f"Your OTP is: {otp}")
+        msg["Subject"] = "Your OTP Code"
+        msg["From"] = MAIL_USERNAME
+        msg["To"] = to_email
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(MAIL_USERNAME, MAIL_PASSWORD)
+        server.sendmail(MAIL_USERNAME, [to_email], msg.as_string())
+        server.quit()
+
+        return True
+    except Exception as e:
+        print("Error:", e)
+        return False
+
+
+@app.route("/send-otp", methods=["POST"])
 def send_otp():
     data = request.get_json()
-    email = data["email"]
-    otp = data["otp"]
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
 
-    msg = MIMEMultipart()
-    msg["From"] = EMAIL
-    msg["To"] = email
-    msg["Subject"] = "Your OTP Code"
-    msg.attach(MIMEText(f"<h1>Your OTP is: {otp}</h1>", "html"))
+    email = data.get("email")
+    otp = data.get("otp")
 
-    try:
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-        server.login(EMAIL, APP_PASSWORD)
-        server.sendmail(EMAIL, email, msg.as_string())
-        server.quit()
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+    if not email or not otp:
+        return jsonify({"status": "error", "message": "Email & OTP required"}), 400
+
+    if send_email(email, otp):
+        return jsonify({"status": "success", "message": "OTP sent successfully!"})
+    else:
+        return jsonify({"status": "error", "message": "Failed to send OTP"}), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
