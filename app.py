@@ -1,12 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import smtplib
-from email.mime.text import MIMEText
+import requests
 import os
 
 app = Flask(__name__)
 
-# Enable CORS for all domains
 CORS(
     app,
     resources={r"/*": {"origins": "*"}},
@@ -14,27 +12,30 @@ CORS(
     methods=["POST", "OPTIONS"],
 )
 
-MAIL_USERNAME = "balammuu0023@gmail.com"
-MAIL_PASSWORD = "knko rtwx oank wozv"   # your Gmail App Password
-
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+# Your Resend API Key
+RESEND_API_KEY = "re_XCzhFVJX_8Ee9Mkge4Ff81i3T75K5ZZmP"
 
 
 def send_email(to_email, otp):
     try:
-        msg = MIMEText(f"Your OTP is: {otp}")
-        msg["Subject"] = "Your OTP Code"
-        msg["From"] = MAIL_USERNAME
-        msg["To"] = to_email
+        url = "https://api.resend.com/emails"
 
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(MAIL_USERNAME, MAIL_PASSWORD)
-        server.sendmail(MAIL_USERNAME, [to_email], msg.as_string())
-        server.quit()
+        payload = {
+            "from": "OTP Service <onboarding@resend.dev>",
+            "to": [to_email],
+            "subject": "Your OTP Code",
+            "html": f"<h2>Your OTP is: <strong>{otp}</strong></h2>",
+        }
 
-        return True
+        headers = {
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        response = requests.post(url, json=payload, headers=headers)
+        print("Resend Response:", response.text)
+
+        return response.status_code == 200
     except Exception as e:
         print("Error:", e)
         return False
@@ -42,12 +43,10 @@ def send_email(to_email, otp):
 
 @app.route("/send-otp", methods=["POST", "OPTIONS"])
 def send_otp():
-    # Handle CORS preflight
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"}), 200
 
     data = request.get_json()
-
     if not data:
         return jsonify({"status": "error", "message": "Invalid JSON"}), 400
 
@@ -63,7 +62,12 @@ def send_otp():
         return jsonify({"status": "error", "message": "Failed to send OTP"}), 500
 
 
-# ************ IMPORTANT FOR RENDER ************
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"status": "running", "message": "OTP Backend Live"})
+
+
+# Railway uses dynamic port
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
