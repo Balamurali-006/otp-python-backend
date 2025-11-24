@@ -4,13 +4,18 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    allow_headers=["Content-Type"],
+    methods=["POST", "OPTIONS"],
+)
 
-MAIL_USERNAME = "balammuu0023@gmail.com"   # your Gmail
-MAIL_PASSWORD = "knko rtwx oank wozv"      # your app password
+MAIL_USERNAME = "balammuu0023@gmail.com"
+MAIL_PASSWORD = "knko rtwx oank wozv"
 
 SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587  # TLS
+SMTP_PORT = 587
 
 
 def send_email(to_email, otp):
@@ -32,8 +37,11 @@ def send_email(to_email, otp):
         return False
 
 
-@app.route("/send-otp", methods=["POST"])
+@app.route("/send-otp", methods=["POST", "OPTIONS"])
 def send_otp():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+
     data = request.get_json()
     if not data:
         return jsonify({"status": "error", "message": "Invalid JSON"}), 400
