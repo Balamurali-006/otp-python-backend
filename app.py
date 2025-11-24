@@ -2,8 +2,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
+import os
 
 app = Flask(__name__)
+
+# Enable CORS for all domains
 CORS(
     app,
     resources={r"/*": {"origins": "*"}},
@@ -12,7 +15,7 @@ CORS(
 )
 
 MAIL_USERNAME = "balammuu0023@gmail.com"
-MAIL_PASSWORD = "knko rtwx oank wozv"
+MAIL_PASSWORD = "knko rtwx oank wozv"   # your Gmail App Password
 
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
@@ -39,10 +42,12 @@ def send_email(to_email, otp):
 
 @app.route("/send-otp", methods=["POST", "OPTIONS"])
 def send_otp():
+    # Handle CORS preflight
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"}), 200
 
     data = request.get_json()
+
     if not data:
         return jsonify({"status": "error", "message": "Invalid JSON"}), 400
 
@@ -58,5 +63,7 @@ def send_otp():
         return jsonify({"status": "error", "message": "Failed to send OTP"}), 500
 
 
+# ************ IMPORTANT FOR RENDER ************
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
