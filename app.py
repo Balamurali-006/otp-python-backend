@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 MAIL_USERNAME = "balammuu0023@gmail.com"   # your Gmail
-MAIL_PASSWORD = "knko rtwx oank wozv"        # replace with real app password
+MAIL_PASSWORD = "knko rtwx oank wozv"      # your app password
 
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587  # TLS
