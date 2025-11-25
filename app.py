@@ -13,7 +13,7 @@ CORS(
 )
 
 # Your Resend API Key
-RESEND_API_KEY = "re_XCzhFVJX_8Ee9Mkge4Ff81i3T75K5ZZmP"
+RESEND_API_KEY = "re_SMzZvDtm_BVEK3LfzQNScssWpacu88bqc"
 
 
 def send_email(to_email, otp):
